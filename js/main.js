@@ -1,63 +1,79 @@
-(function($){
-    var toTop = ($('#sidebar').height() - $(window).height()) + 60;
-    // Caption
-    $('.article-entry').each(function(i) {
-        $(this).find('img').each(function() {
-            if (this.alt && !(!!$.prototype.justifiedGallery && $(this).parent('.justified-gallery').length)) {
-                $(this).after('<span class="caption">' + this.alt + '</span>');
-            }
+var alphaDust = function () {
 
-            // 对于已经包含在链接内的图片不适用lightGallery
-            if ($(this).parent().prop("tagName") !== 'A') {
-                $(this).wrap('<a href="' + this.src + '" title="' + this.alt + '" class="gallery-item"></a>');
-            }
+    var _menuOn = false;
+
+    function initPostHeader() {
+        $('.main .post').each(function () {
+            var $post = $(this);
+            var $header = $post.find('.post-header.index');
+            var $title = $post.find('h1.title');
+            var $readMoreLink = $post.find('a.read-more');
+
+            var toggleHoverClass = function () {
+                $header.toggleClass('hover');
+            };
+
+            $title.hover(toggleHoverClass, toggleHoverClass);
+            $readMoreLink.hover(toggleHoverClass, toggleHoverClass);
         });
-    });
-    if (lightGallery) {
-        var options = {
-            selector: '.gallery-item',
-        };
-        $('.article-entry').each(function(i, entry) {
-            lightGallery(entry, options);
-        });
-        lightGallery($('.article-gallery')[0], options);
-    }
-    if (!!$.prototype.justifiedGallery) {  // if justifiedGallery method is defined
-        var options = {
-            rowHeight: 140,
-            margins: 4,
-            lastRow: 'justify'
-        };
-        $('.justified-gallery').justifiedGallery(options);
     }
 
-    // Profile card
-    $(document).on('click', function () {
-        $('#profile').removeClass('card');
-    }).on('click', '#profile-anchor', function (e) {
-        e.stopPropagation();
-        $('#profile').toggleClass('card');
-    }).on('click', '.profile-inner', function (e) {
-        e.stopPropagation();
-    });
+    function _menuShow () {
+        $('nav a').addClass('menu-active');
+        $('.menu-bg').show();
+        $('.menu-item').css({opacity: 0});
+        TweenLite.to('.menu-container', 1, {padding: '0 40px'});
+        TweenLite.to('.menu-bg', 1, {opacity: '0.92'});
+        TweenMax.staggerTo('.menu-item', 0.5, {opacity: 1}, 0.3);
+        _menuOn = true;
 
-    // To Top
-    if ($('#sidebar').length) {
-        $(document).on('scroll', function () {
-            if ($(document).width() >= 800) {
-                if(($(this).scrollTop() > toTop) && ($(this).scrollTop() > 0)) {
-                    $('#toTop').fadeIn();
-                    $('#toTop').css('left', $('#sidebar').offset().left);
-                } else {
-                    $('#toTop').fadeOut();
-                }
+        $('.menu-bg').hover(function () {
+            $('nav a').toggleClass('menu-close-hover');
+        });
+    }
+
+    function _menuHide() {
+        $('nav a').removeClass('menu-active');
+        TweenLite.to('.menu-bg', 0.5, {opacity: '0', onComplete: function () {
+            $('.menu-bg').hide();
+        }});
+        TweenLite.to('.menu-container', 0.5, {padding: '0 100px'});
+        $('.menu-item').css({opacity: 0});
+        _menuOn = false;
+    }
+
+    function initMenu() {
+
+        $('nav a').click(function () {
+            if(_menuOn) {
+                _menuHide();
             } else {
-                $('#toTop').fadeIn();
-                $('#toTop').css('right', 20);
+                _menuShow();
             }
-        }).on('click', '#toTop', function () {
-            $('body, html').animate({ scrollTop: 0 }, 600);
+        });
+
+        $('.menu-bg').click(function (e) {
+            if(_menuOn && e.target === this) {
+                _menuHide();
+            }
         });
     }
 
-})(jQuery);
+    function displayArchives() {
+        $('.archive-post').css({opacity: 0});
+        TweenMax.staggerTo('.archive-post', 0.4, {opacity: 1}, 0.15);
+    }
+
+    return {
+        initPostHeader: initPostHeader,
+        initMenu: initMenu,
+        displayArchives: displayArchives
+    };
+}();
+
+
+$(document).ready(function () {
+    alphaDust.initPostHeader();
+    alphaDust.initMenu();
+    alphaDust.displayArchives();
+});
